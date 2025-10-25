@@ -349,18 +349,24 @@ class _BottomNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: active ? Colors.red : Colors.grey),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: active ? Colors.red : Colors.grey,
+    return SizedBox(
+      height: 48, // Ensures fixed height for bottom bar item
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: active ? Colors.red : Colors.grey, size: 20),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: active ? Colors.red : Colors.grey,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
+

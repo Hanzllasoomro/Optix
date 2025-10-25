@@ -1,3 +1,4 @@
+import './myShopScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import './customerSearchScreen.dart';
@@ -120,9 +121,27 @@ class DashboardScreen extends StatelessWidget {
                         _DashboardButton(
                           icon: Icons.storefront,
                           label: "My Shop",
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MyShopScreen(
+                                  shopName: "Tariq Eye Corner",
+                                  email: "tariqopticals@gmail.com",
+                                  contact: "03126017600",
+                                  address: "Main Saddar, Karachi",
+                                  totalCustomers: 250,
+                                  opticsCustomers: 180,
+                                  repairingCustomers: 70,
+                                  subscriptionStatus: "Active",
+                                  daysLeft: 9,
+                                ),
+                              ),
+                            );
+                          },
                           isWide: isWide,
                         ),
+
                         _DashboardButton(
                           icon: Icons.power_settings_new,
                           label: "Logout",
