@@ -6,15 +6,21 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isWide = size.width > 600; // tablet or web
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F5FB), // Light background
+      backgroundColor: const Color(0xFFF7F5FB),
       body: SafeArea(
         child: Column(
           children: [
             // 🔹 Header section
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+              padding: EdgeInsets.symmetric(
+                vertical: isWide ? 50 : 40,
+                horizontal: isWide ? 40 : 20,
+              ),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
@@ -28,13 +34,17 @@ class DashboardScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.store, color: Colors.white, size: 60),
+                  Icon(
+                    Icons.store,
+                    color: Colors.white,
+                    size: isWide ? 80 : 60,
+                  ),
                   const SizedBox(height: 10),
                   Text(
-                    "Ali Optical",
+                    "Tariq Eye Corner",
                     style: GoogleFonts.poppins(
                       color: Colors.white,
-                      fontSize: 22,
+                      fontSize: isWide ? 28 : 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -44,47 +54,75 @@ class DashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // 🔹 Grid buttons
+            // 🔹 Grid buttons (responsive layout)
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  children: [
-                    _DashboardButton(
-                      icon: Icons.person_add,
-                      label: "Add Customer",
-                      onTap: () {},
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  int crossAxisCount;
+                  double aspectRatio;
+
+                  if (constraints.maxWidth >= 1000) {
+                    crossAxisCount = 4;
+                    aspectRatio = 1.2;
+                  } else if (constraints.maxWidth >= 600) {
+                    crossAxisCount = 3;
+                    aspectRatio = 1.0;
+                  } else {
+                    crossAxisCount = 2;
+                    aspectRatio = 1.0;
+                  }
+
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isWide ? 60 : 16,
+                      vertical: 10,
                     ),
-                    _DashboardButton(
-                      icon: Icons.search,
-                      label: "Search Customer",
-                      onTap: () {},
+                    child: GridView.count(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: aspectRatio,
+                      children: [
+                        _DashboardButton(
+                          icon: Icons.person_add,
+                          label: "Add Customer",
+                          onTap: () {},
+                          isWide: isWide,
+                        ),
+                        _DashboardButton(
+                          icon: Icons.search,
+                          label: "Search Customer",
+                          onTap: () {},
+                          isWide: isWide,
+                        ),
+                        _DashboardButton(
+                          icon: Icons.build,
+                          label: "Add Repairing Customer",
+                          onTap: () {},
+                          isWide: isWide,
+                        ),
+                        _DashboardButton(
+                          icon: Icons.bar_chart,
+                          label: "Sales",
+                          onTap: () {},
+                          isWide: isWide,
+                        ),
+                        _DashboardButton(
+                          icon: Icons.storefront,
+                          label: "My Shop",
+                          onTap: () {},
+                          isWide: isWide,
+                        ),
+                        _DashboardButton(
+                          icon: Icons.power_settings_new,
+                          label: "Logout",
+                          onTap: () {},
+                          isWide: isWide,
+                        ),
+                      ],
                     ),
-                    _DashboardButton(
-                      icon: Icons.build,
-                      label: "Add Repairing Customer",
-                      onTap: () {},
-                    ),
-                    _DashboardButton(
-                      icon: Icons.bar_chart,
-                      label: "Sales",
-                      onTap: () {},
-                    ),
-                    _DashboardButton(
-                      icon: Icons.storefront,
-                      label: "My Shop",
-                      onTap: () {},
-                    ),
-                    _DashboardButton(
-                      icon: Icons.power_settings_new,
-                      label: "Logout",
-                      onTap: () {},
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],
@@ -98,12 +136,14 @@ class _DashboardButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final bool isWide;
 
   const _DashboardButton({
     Key? key,
     required this.icon,
     required this.label,
     required this.onTap,
+    required this.isWide,
   }) : super(key: key);
 
   @override
@@ -121,7 +161,7 @@ class _DashboardButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.red.shade200,
+              color: Colors.red.shade200.withOpacity(0.4),
               blurRadius: 8,
               offset: const Offset(4, 4),
             ),
@@ -130,14 +170,18 @@ class _DashboardButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 40),
+            Icon(
+              icon,
+              color: Colors.white,
+              size: isWide ? 60 : 40,
+            ),
             const SizedBox(height: 10),
             Text(
               label,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 color: Colors.white,
-                fontSize: 14,
+                fontSize: isWide ? 16 : 14,
                 fontWeight: FontWeight.w500,
               ),
             ),
