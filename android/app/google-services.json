@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "955045208943",
+    "project_id": "ali-optical",
+    "storage_bucket": "ali-optical.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:955045208943:android:5cc354c6c408e4d9ea3e9a",
+        "android_client_info": {
+          "package_name": "com.example.alioptical"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "955045208943-kuoev6ioqd0hq0iruadsq3ki1r70hjvb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNBHiBhcYwtE-9a_I-p5th_bh05DNF4vM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "955045208943-kuoev6ioqd0hq0iruadsq3ki1r70hjvb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
