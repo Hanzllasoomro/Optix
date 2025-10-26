@@ -35,32 +35,30 @@ class AuthService{
     }
   }
   //sign up
-  Future<UserCredential> signUpWithEmailAndPassword({
-    required String email,
-    required String password,
-    required String shopName,
-    required String contactNumber,
-  }) async {
-    try {
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+  Future<UserCredential> signUpWithEmailAndPassword(String email, String password) async {
+    try{
+      // create user
+      UserCredential userCredential= await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password);
+
+      // save user data in a separate doc
+      _firestore.collection("Users").doc(userCredential.user!.uid).set(
+        {
+
+          'uid': userCredential.user!.uid,
+          'email': email,
+        },
       );
 
-      await _firestore.collection("Users").doc(userCredential.user!.uid).set({
-        'uid': userCredential.user!.uid,
-        'email': email,
-        'shopName': shopName,
-        'contactNumber': contactNumber,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
       return userCredential;
-    } on FirebaseAuthException catch (e) {
+
+    } on FirebaseAuthException catch(e) {
       throw Exception(e.code);
     }
-  }
 
+
+  }
   //sign out
   Future<void> signOut() async{
     return await _auth.signOut();
