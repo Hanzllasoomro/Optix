@@ -12,9 +12,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 👇 Check Firebase connection
-  print("🔥 Firebase connected: ${Firebase.apps.isNotEmpty}");
-
   runApp(const MyApp());
 }
 
@@ -28,7 +25,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Ali Ocal',
+      title: 'Ali Optical',
       theme: ThemeData(
 
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
