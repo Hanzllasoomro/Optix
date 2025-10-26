@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import './customerSearchScreen.dart';
 import './myShopScreen.dart';
+import './addCustomerScreen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -123,7 +124,6 @@ class DashboardScreen extends StatelessWidget {
                         _DashboardButton(
                           icon: Icons.person_add,
                           label: "Add Customer",
-                          onTap: () {},
                           onTap: () {
                             Navigator.push(
                               context,
