@@ -103,13 +103,20 @@ class LoginPage extends StatelessWidget {
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: "Email",
+                  labelStyle: TextStyle(color: const Color(0xFFD32F2F)),
                   filled: true,
                   fillColor: Colors.white,
                   hintText: "Enter your email",
                   hintStyle: TextStyle(color: Colors.grey.shade400),
-                  border: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.black),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: const Color(0xFFD32F2F)),
+                  ),
+
                 ),
               ),
             ),
@@ -125,13 +132,21 @@ class LoginPage extends StatelessWidget {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: "Password",
+                  labelStyle: TextStyle(color: const Color(0xFFD32F2F)),
                   filled: true,
                   fillColor: Colors.white,
                   hintText: "Enter your password",
                   hintStyle: TextStyle(color: Colors.grey.shade400),
-                  border: OutlineInputBorder(
+
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.black),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: const Color(0xFFD32F2F)),
+                  ),
+
                 ),
               ),
             ),

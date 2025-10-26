@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../servers/auth/auth_service.dart';
 
 class RegisterPage extends StatelessWidget {
+  // 🔹 Controllers
+  final TextEditingController _shopNameController = TextEditingController();
+  final TextEditingController _contactController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
@@ -11,6 +16,7 @@ class RegisterPage extends StatelessWidget {
 
   RegisterPage({super.key, required this.onTap});
 
+  // 🔹 Registration Function
   void register(BuildContext context) async {
     final auth = AuthService();
 
@@ -21,14 +27,26 @@ class RegisterPage extends StatelessWidget {
 
     try {
       await auth.signUpWithEmailAndPassword(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        shopName: _shopNameController.text.trim(),
+        contactNumber: _contactController.text.trim(),
+      );
+
+      showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          title: Text("Success"),
+          content: Text("Account created successfully!"),
+        ),
       );
     } catch (e) {
       _showErrorDialog(context, e.toString());
     }
   }
 
+
+  // 🔹 Error dialog
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
@@ -50,7 +68,7 @@ class RegisterPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 🔴 Header Section (same as Login)
+            // 🔴 Header Section
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(
@@ -102,20 +120,82 @@ class RegisterPage extends StatelessWidget {
 
             const SizedBox(height: 25),
 
+            // 🟢 Shop Name Field
+            Container(
+              width: isWide ? 400 : 320,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _shopNameController,
+                decoration: InputDecoration(
+                  labelText: "Shop Name",
+                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
+                  filled: true,
+                  fillColor: Colors.white,
+                  hintText: "Enter your shop name",
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.black),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // 🟢 Contact Number Field
+            Container(
+              width: isWide ? 400 : 320,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _contactController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: "Contact Number",
+                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
+                  filled: true,
+                  fillColor: Colors.white,
+                  hintText: "Enter your contact number",
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.black),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
             // 🟢 Email Field
             Container(
               width: isWide ? 400 : 320,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: TextField(
                 controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: "Email",
+                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
                   filled: true,
                   fillColor: Colors.white,
                   hintText: "Enter your email",
                   hintStyle: TextStyle(color: Colors.grey.shade400),
-                  border: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.black),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
                   ),
                 ),
               ),
@@ -132,12 +212,18 @@ class RegisterPage extends StatelessWidget {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: "Password",
+                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
                   filled: true,
                   fillColor: Colors.white,
                   hintText: "Enter your password",
                   hintStyle: TextStyle(color: Colors.grey.shade400),
-                  border: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.black),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
                   ),
                 ),
               ),
@@ -154,12 +240,18 @@ class RegisterPage extends StatelessWidget {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: "Confirm Password",
+                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
                   filled: true,
                   fillColor: Colors.white,
                   hintText: "Re-enter your password",
                   hintStyle: TextStyle(color: Colors.grey.shade400),
-                  border: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.black),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
                   ),
                 ),
               ),
@@ -192,7 +284,7 @@ class RegisterPage extends StatelessWidget {
 
             const SizedBox(height: 25),
 
-            // 🔸 Already have account
+            // 🔸 Already have an account?
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
