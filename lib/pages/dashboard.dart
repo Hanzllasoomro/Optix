@@ -26,7 +26,6 @@ class DashboardScreen extends StatelessWidget {
     }
     return "Shop";
   }
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -56,15 +55,6 @@ class DashboardScreen extends StatelessWidget {
                     vertical: isWide ? 50 : 40,
                     horizontal: isWide ? 40 : 20,
                   ),
-<<<<<<< HEAD
-                  const SizedBox(height: 10),
-                  Text(
-                    "Ali Optical",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: isWide ? 28 : 22,
-                      fontWeight: FontWeight.bold,
-=======
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
@@ -74,7 +64,7 @@ class DashboardScreen extends StatelessWidget {
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(50),
                       bottomRight: Radius.circular(50),
->>>>>>> 075c833 (Authentication)
+
                     ),
                   ),
                   child: Column(
@@ -99,13 +89,7 @@ class DashboardScreen extends StatelessWidget {
               },
             ),
 
-<<<<<<< HEAD
             // 🔹 Grid buttons (responsive layout)
-=======
-            const SizedBox(height: 30),
-
-            // 🔹 Grid buttons
->>>>>>> 075c833 (Authentication)
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -137,7 +121,6 @@ class DashboardScreen extends StatelessWidget {
                         _DashboardButton(
                           icon: Icons.person_add,
                           label: "Add Customer",
-<<<<<<< HEAD
                           onTap: () {
                             Navigator.push(
                               context,
@@ -146,9 +129,6 @@ class DashboardScreen extends StatelessWidget {
                               ),
                             );
                           },
-=======
-                          onTap: () {},
->>>>>>> 075c833 (Authentication)
                           isWide: isWide,
                         ),
                         _DashboardButton(
@@ -206,6 +186,7 @@ class DashboardScreen extends StatelessWidget {
                           },
                           isWide: isWide,
                         ),
+
                         _DashboardButton(
                           icon: Icons.power_settings_new,
                           label: "Logout",
