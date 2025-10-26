@@ -1,66 +1,96 @@
 import 'package:alioptical/servers/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import './customerSearchScreen.dart';
 import './myShopScreen.dart';
-import './addCustomerScreen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({Key? key}) : super(key: key);
 
-  void logout(){
-    final _authService= AuthService();
+  void logout() {
+    final _authService = AuthService();
     _authService.signOut();
-
   }
+
+  // 🔹 Function to get shop name of current logged-in user
+  Future<String> _getShopName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return "Shop";
+
+    final doc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
+    if (doc.exists && doc.data()?['shopName'] != null) {
+      return doc['shopName'];
+    }
+    return "Shop";
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isWide = size.width > 600; // tablet or web
+    final isWide = size.width > 600;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5FB),
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                vertical: isWide ? 50 : 40,
-                horizontal: isWide ? 40 : 20,
-              ),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(50),
-                  bottomRight: Radius.circular(50),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.store,
-                    color: Colors.white,
-                    size: isWide ? 80 : 60,
+            // 🔴 Header with dynamic shop name
+            FutureBuilder<String>(
+              future: _getShopName(),
+              builder: (context, snapshot) {
+                String shopName = "Loading...";
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasData) {
+                    shopName = snapshot.data!;
+                  } else {
+                    shopName = "Shop";
+                  }
+                }
+
+                return Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    vertical: isWide ? 50 : 40,
+                    horizontal: isWide ? 40 : 20,
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Ali Optical",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: isWide ? 28 : 22,
-                      fontWeight: FontWeight.bold,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(50),
+                      bottomRight: Radius.circular(50),
                     ),
                   ),
-                ],
-              ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.store,
+                        color: Colors.white,
+                        size: isWide ? 80 : 60,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        shopName,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: isWide ? 28 : 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
 
-            // 🔹 Grid buttons (responsive layout)
+            const SizedBox(height: 30),
+
+            // 🔹 Grid buttons
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -92,14 +122,7 @@ class DashboardScreen extends StatelessWidget {
                         _DashboardButton(
                           icon: Icons.person_add,
                           label: "Add Customer",
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AddCustomerScreen(),
-                              ),
-                            );
-                          },
+                          onTap: () {},
                           isWide: isWide,
                         ),
                         _DashboardButton(
@@ -130,27 +153,33 @@ class DashboardScreen extends StatelessWidget {
                         _DashboardButton(
                           icon: Icons.storefront,
                           label: "My Shop",
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const MyShopScreen(
-                                  shopName: "Tariq Eye Corner",
-                                  email: "tariqopticals@gmail.com",
-                                  contact: "03126017600",
-                                  address: "Main Saddar, Karachi",
-                                  totalCustomers: 250,
-                                  opticsCustomers: 180,
-                                  repairingCustomers: 70,
-                                  subscriptionStatus: "Active",
-                                  daysLeft: 9,
-                                ),
-                              ),
-                            );
+                          onTap: () async {
+                            final user = FirebaseAuth.instance.currentUser;
+                            if (user != null) {
+                              final doc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
+                              if (doc.exists) {
+                                final data = doc.data()!;
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MyShopScreen(
+                                      shopName: data['shopName'] ?? 'Shop',
+                                      email: data['email'] ?? 'N/A',
+                                      contact: data['contactNumber'] ?? 'N/A',
+                                      address: data['address'] ?? 'N/A',
+                                      totalCustomers: data['totalCustomers'] ?? 0,
+                                      opticsCustomers: data['opticsCustomers'] ?? 0,
+                                      repairingCustomers: data['repairingCustomers'] ?? 0,
+                                      subscriptionStatus: data['subscriptionStatus'] ?? 'Inactive',
+                                      daysLeft: data['daysLeft'] ?? 0,
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
                           },
                           isWide: isWide,
                         ),
-
                         _DashboardButton(
                           icon: Icons.power_settings_new,
                           label: "Logout",
