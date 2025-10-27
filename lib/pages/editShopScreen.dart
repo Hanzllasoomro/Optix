@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import './myShopScreen.dart';
@@ -12,16 +14,96 @@ class EditShopScreen extends StatefulWidget {
 class _EditShopScreenState extends State<EditShopScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Mock initial data (pretend fetched from database)
-  String shopName = "Tariq Eye Corner";
-  String email = "tariqopticals@gmail.com";
-  String contact = "03126017600";
-  String address = "Main Saddar, Karachi";
+  // Fields
+  String shopName = "";
+  String email = "";
+  String contact = "";
+  String address = "";
+
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchShopDetails();
+  }
+
+  Future<void> _fetchShopDetails() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final doc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
+
+      if (doc.exists) {
+        final data = doc.data()!;
+        setState(() {
+          shopName = data['shopName'] ?? "";
+          email = data['email'] ?? user.email ?? "";
+          contact = data['contactNumber'] ?? "";
+          address = data['address'] ?? "";
+          isLoading = false;
+        });
+      } else {
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
+      print("Error loading data: $e");
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _saveDetails() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      // ✅ Update Firestore data (email not changed)
+      await FirebaseFirestore.instance.collection('Users').doc(user.uid).update({
+        'shopName': shopName,
+        'email': email, // keep same email
+        'contactNumber': contact,
+        'address': address,
+        'updatedAt': DateTime.now(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Details saved successfully!")),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MyShopScreen(
+            shopName: shopName,
+            email: email,
+            contact: contact,
+            address: address,
+            subscriptionStatus: "Active",
+            daysLeft: 9,
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error saving details: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWide = size.width > 600;
+
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: Colors.red)),
+      );
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5FB),
@@ -41,7 +123,6 @@ class _EditShopScreenState extends State<EditShopScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
           horizontal: isWide ? 100 : 20,
@@ -62,9 +143,11 @@ class _EditShopScreenState extends State<EditShopScreen> {
                 const SizedBox(height: 16),
 
                 _buildLabel("Email"),
+                // 👇 Email field is now read-only
                 _buildTextField(
                   initialValue: email,
                   keyboardType: TextInputType.emailAddress,
+                  readOnly: true, // 👈 Prevent editing
                   onSaved: (val) => email = val ?? "",
                 ),
                 const SizedBox(height: 16),
@@ -84,86 +167,10 @@ class _EditShopScreenState extends State<EditShopScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // 🔹 Save Button
                 _buildActionButton(
                   label: "Save Details 💾",
                   color: const Color(0xFFD32F2F),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Details saved successfully!")),
-                      );
-
-                      // ✅ Pass updated data back to MyShopScreen
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MyShopScreen(
-                            shopName: shopName,
-                            email: email,
-                            contact: contact,
-                            address: address,
-                            totalCustomers: 250,
-                            opticsCustomers: 180,
-                            repairingCustomers: 70,
-                            subscriptionStatus: "Active",
-                            daysLeft: 9,
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-                const SizedBox(height: 15),
-
-                // 🔹 Reset Password
-                _buildActionButton(
-                  label: "Reset Password 🔒",
-                  color: Colors.orange.shade700,
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Redirecting to Reset Password...")),
-                    );
-                    // TODO: Navigate to ResetPasswordScreen
-                  },
-                ),
-                const SizedBox(height: 15),
-
-                // 🔹 Delete Account
-                _buildActionButton(
-                  label: "Delete Account 🗑️",
-                  color: Colors.grey.shade700,
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text("Delete Shop Account"),
-                        content: const Text(
-                            "Are you sure you want to permanently delete this account?"),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text("Cancel"),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red.shade700,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Account deleted successfully.")),
-                              );
-                              Navigator.pop(context);
-                            },
-                            child: const Text("Delete"),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                  onPressed: _saveDetails,
                 ),
               ],
             ),
@@ -172,8 +179,6 @@ class _EditShopScreenState extends State<EditShopScreen> {
       ),
     );
   }
-
-  // ------------------- Helper Widgets -----------------------
 
   Widget _buildLabel(String text) {
     return Padding(
@@ -193,17 +198,18 @@ class _EditShopScreenState extends State<EditShopScreen> {
     required String initialValue,
     TextInputType? keyboardType,
     required FormFieldSetter<String> onSaved,
+    bool readOnly = false, // 👈 Added parameter
   }) {
     return TextFormField(
       initialValue: initialValue,
+      readOnly: readOnly,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: readOnly ? Colors.grey.shade200 : Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Colors.grey),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),

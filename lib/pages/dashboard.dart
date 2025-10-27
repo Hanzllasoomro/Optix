@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import './customerSearchScreen.dart';
 import './myShopScreen.dart';
 import './addCustomerScreen.dart';
+import 'SalesRecordScreen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -155,10 +156,16 @@ class DashboardScreen extends StatelessWidget {
                         ),
                         _DashboardButton(
                           icon: Icons.bar_chart,
-                          label: "Sales",
-                          onTap: () {},
+                          label: "Sales Record",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const SalesRecordScreen()),
+                            );
+                          },
                           isWide: isWide,
                         ),
+
                         _DashboardButton(
                           icon: Icons.storefront,
                           label: "My Shop",
@@ -176,9 +183,6 @@ class DashboardScreen extends StatelessWidget {
                                       email: data['email'] ?? 'N/A',
                                       contact: data['contactNumber'] ?? 'N/A',
                                       address: data['address'] ?? 'N/A',
-                                      totalCustomers: data['totalCustomers'] ?? 0,
-                                      opticsCustomers: data['opticsCustomers'] ?? 0,
-                                      repairingCustomers: data['repairingCustomers'] ?? 0,
                                       subscriptionStatus: data['subscriptionStatus'] ?? 'Inactive',
                                       daysLeft: data['daysLeft'] ?? 0,
                                     ),
