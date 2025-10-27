@@ -1,16 +1,14 @@
 import 'package:alioptical/components/bottomNavBar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import './editShopScreen.dart';
 
-class MyShopScreen extends StatelessWidget {
+class MyShopScreen extends StatefulWidget {
   final String shopName;
   final String email;
   final String contact;
   final String address;
-  final int totalCustomers;
-  final int opticsCustomers;
-  final int repairingCustomers;
   final String subscriptionStatus;
   final int daysLeft;
 
@@ -20,12 +18,47 @@ class MyShopScreen extends StatelessWidget {
     required this.email,
     required this.contact,
     required this.address,
-    required this.totalCustomers,
-    required this.opticsCustomers,
-    required this.repairingCustomers,
     required this.subscriptionStatus,
     required this.daysLeft,
   }) : super(key: key);
+
+  @override
+  State<MyShopScreen> createState() => _MyShopScreenState();
+}
+
+class _MyShopScreenState extends State<MyShopScreen> {
+  int totalCustomers = 0;
+  int opticsCustomers = 0;
+  int repairingCustomers = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCustomerCounts();
+  }
+
+  Future<void> _fetchCustomerCounts() async {
+    try {
+      // Fetch optics customers (normal customers)
+      final opticsSnapshot =
+      await FirebaseFirestore.instance.collection('customers').get();
+      opticsCustomers = opticsSnapshot.size;
+
+      // Fetch repairing customers
+      final repairingSnapshot =
+      await FirebaseFirestore.instance.collection('repairing_customers').get();
+      repairingCustomers = repairingSnapshot.size;
+
+      // Calculate total
+      totalCustomers = opticsCustomers + repairingCustomers;
+
+      setState(() => isLoading = false);
+    } catch (e) {
+      print("Error fetching customer counts: $e");
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,15 +81,18 @@ class MyShopScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.red))
+          : SingleChildScrollView(
         padding: EdgeInsets.all(isWide ? 40 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(Icons.store, color: const Color(0xFFD32F2F), size: isWide ? 90 : 70),
+            Icon(Icons.store,
+                color: const Color(0xFFD32F2F), size: isWide ? 90 : 70),
             const SizedBox(height: 10),
             Text(
-              shopName,
+              widget.shopName,
               style: GoogleFonts.poppins(
                 fontSize: isWide ? 26 : 20,
                 fontWeight: FontWeight.bold,
@@ -64,9 +100,12 @@ class MyShopScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 5),
-            Text("Contact: $contact", style: GoogleFonts.poppins(fontSize: 14)),
-            Text("Address: $address", style: GoogleFonts.poppins(fontSize: 14)),
-            Text("Email: $email", style: GoogleFonts.poppins(fontSize: 14)),
+            Text("Contact: ${widget.contact}",
+                style: GoogleFonts.poppins(fontSize: 14)),
+            Text("Address: ${widget.address}",
+                style: GoogleFonts.poppins(fontSize: 14)),
+            Text("Email: ${widget.email}",
+                style: GoogleFonts.poppins(fontSize: 14)),
             const SizedBox(height: 20),
 
             // 🔹 Grid Cards
@@ -78,54 +117,21 @@ class MyShopScreen extends StatelessWidget {
               mainAxisSpacing: 20,
               children: [
                 _buildInfoCard("Total Customers", totalCustomers.toString()),
-                _buildInfoCard("Optics Customers", opticsCustomers.toString()),
-                _buildInfoCard("Repairing Customers", repairingCustomers.toString()),
+                _buildInfoCard("Prescription Customers", opticsCustomers.toString()),
+                _buildInfoCard(
+                    "Repairing Customers", repairingCustomers.toString()),
               ],
             ),
-            const SizedBox(height: 20),
 
-            // 🔹 Subscription
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.shade300,
-                    blurRadius: 5,
-                    offset: const Offset(2, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Subscription Status",
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, fontSize: 16)),
-                  const SizedBox(height: 5),
-                  Text(
-                    "$subscriptionStatus - $daysLeft days left",
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      color: subscriptionStatus == "Active"
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 20),
 
-            // 🔹 Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildButton(
+            const SizedBox(height: 30),
+
+            // 🔹 Centered Edit Button
+            Center(
+              child: SizedBox(
+                width: isWide ? 250 : double.infinity,
+                child: _buildButton(
                   context,
                   label: "Edit Details ✏️",
                   color: const Color(0xFFD32F2F),
@@ -138,19 +144,7 @@ class MyShopScreen extends StatelessWidget {
                     );
                   },
                 ),
-                _buildButton(
-                  context,
-                  label: "Get 35% Discount 🎁",
-                  color: const Color(0xFFB71C1C),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Offer applied successfully!"),
-                      ),
-                    );
-                  },
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -204,21 +198,18 @@ class MyShopScreen extends StatelessWidget {
       {required String label,
         required Color color,
         required VoidCallback onTap}) {
-    return Expanded(
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        onPressed: onTap,
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-          ),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      onPressed: onTap,
+      child: Text(
+        label,
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
         ),
       ),
     );
