@@ -1,3 +1,4 @@
+import 'package:alioptical/pages/addRepairingCustomerScreen.dart';
 import 'package:alioptical/servers/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -150,7 +151,12 @@ class DashboardScreen extends StatelessWidget {
                         _DashboardButton(
                           icon: Icons.build,
                           label: "Add Repairing Customer",
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => AddRepairingCustomerScreen()
+                            )
+                            );
+                          },
                           isWide: isWide,
                         ),
                         _DashboardButton(

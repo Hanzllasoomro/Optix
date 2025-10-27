@@ -1,8 +1,8 @@
+import 'package:alioptical/pages/addRepairingCustomerScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../pages/customerSearchScreen.dart';
 import '../../pages/myShopScreen.dart';
-// import '../pages/repairingScreen.dart'; // Add when ready
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -14,9 +14,9 @@ class BottomNavBar extends StatelessWidget {
 
     switch (index) {
       case 0:
-      // Repairing
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Repairing Screen Coming Soon")),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AddRepairingCustomerScreen()),
         );
         break;
       case 1:
@@ -40,7 +40,7 @@ class BottomNavBar extends StatelessWidget {
               opticsCustomers: 180,
               repairingCustomers: 70,
               subscriptionStatus: "Active",
-              daysLeft: 9, // mock data for now
+              daysLeft: 9,
             ),
           ),
         );

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:alioptical/servers/auth/auth_service.dart';
-import '../components//bottomNavBar.dart';
+import '../components/bottomNavBar.dart';
+import '../pages/customerReceiptScreen.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({Key? key}) : super(key: key);
@@ -12,66 +16,41 @@ class CustomerSearchScreen extends StatefulWidget {
 }
 
 class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
-  TextEditingController searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+  String selectedType = "Customers"; // Dropdown default
 
-  // Mock data (Replace with DB fetch logic)
-  List<Map<String, dynamic>> allCustomers = [
-    {
-      "name": "Hanzlla Soomro",
-      "contact": "035552864284",
-      "serial": "#1000",
-    },
-    {
-      "name": "Ali Khan",
-      "contact": "03451234567",
-      "serial": "#1001",
-    },
-  ];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  List<Map<String, dynamic>> filteredCustomers = [];
-
-  @override
-  void initState() {
-    super.initState();
-    filteredCustomers = allCustomers;
+  void logout() {
+    final _authService = AuthService();
+    _authService.signOut();
   }
 
-  void searchCustomer(String query) {
-    setState(() {
-      filteredCustomers = allCustomers.where((customer) {
-        final name = customer["name"].toLowerCase();
-        final contact = customer["contact"];
-        final serial = customer["serial"].toLowerCase();
-        return name.contains(query.toLowerCase()) ||
-            contact.contains(query) ||
-            serial.contains(query.toLowerCase());
-      }).toList();
-    });
-  }
-
-  // Helper: launch phone or WhatsApp
   Future<void> _launchUrl(String url) async {
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     }
   }
 
-  void _confirmDelete(String name) {
+  void _confirmDelete(String docId) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Customer"),
-        content: Text("Are you sure you want to delete $name?"),
+        title: const Text("Delete Record"),
+        content: Text("Are you sure you want to delete this record?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text("Cancel"),
           ),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                filteredCustomers.removeWhere((c) => c["name"] == name);
-              });
+            onPressed: () async {
+              await _firestore
+                  .collection(selectedType == "Customers"
+                  ? "customers"
+                  : "repairing_customers")
+                  .doc(docId)
+                  .delete();
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -82,10 +61,15 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     );
   }
 
-  void logout(){
-    final _authService= AuthService();
-    _authService.signOut();
-
+  // Firestore Stream depending on dropdown
+  Stream<QuerySnapshot> getDataStream() {
+    final collection = selectedType == "Customers"
+        ? "customers"
+        : "repairing_customers";
+    return _firestore
+        .collection(collection)
+        .orderBy("createdAt", descending: true)
+        .snapshots();
   }
 
   @override
@@ -125,7 +109,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  value: "Customers",
+                  value: selectedType,
                   items: const [
                     DropdownMenuItem(
                       value: "Customers",
@@ -150,7 +134,13 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                       ),
                     ),
                   ],
-                  onChanged: (value) {},
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedType = value;
+                      });
+                    }
+                  },
                 ),
               ),
             ),
@@ -159,7 +149,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             // Search bar
             TextField(
               controller: searchController,
-              onChanged: searchCustomer,
+              onChanged: (_) => setState(() {}), // triggers rebuild for filter
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search, color: Colors.red),
                 hintText: "Search by Name, Contact, or Serial...",
@@ -175,23 +165,54 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Customer List
+            // List of Customers (StreamBuilder)
             Expanded(
-              child: ListView.builder(
-                itemCount: filteredCustomers.length,
-                itemBuilder: (context, index) {
-                  final customer = filteredCustomers[index];
-                  return _CustomerCard(
-                    name: customer["name"],
-                    contact: customer["contact"],
-                    serial: customer["serial"],
-                    onCall: () => _launchUrl("tel:${customer["contact"]}"),
-                    onView: () {},
-                    onEdit: () {},
-                    onWhatsApp: () => _launchUrl(
-                        "https://wa.me/${customer["contact"].replaceAll("+", "")}"),
-                    onDelete: () => _confirmDelete(customer["name"]),
-                    isWide: isWide,
+              child: StreamBuilder<QuerySnapshot>(
+                stream: getDataStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text("No records found"));
+                  }
+
+                  final query = searchController.text.toLowerCase();
+                  final docs = snapshot.data!.docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    final name = (data["name"] ?? "").toString().toLowerCase();
+                    final contact =
+                    (data["contact"] ?? "").toString().toLowerCase();
+                    final serial =
+                    (data["serialNo"] ?? "").toString().toLowerCase();
+                    return name.contains(query) ||
+                        contact.contains(query) ||
+                        serial.contains(query);
+                  }).toList();
+
+                  return ListView.builder(
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final doc = docs[index];
+                      final data = doc.data() as Map<String, dynamic>;
+
+                      final name = data["name"] ?? "Unknown";
+                      final contact = data["contact"] ?? "N/A";
+                      final serial =
+                      data["serialNo"] != null ? "#${data["serialNo"]}" : "#N/A";
+
+                      return _CustomerCard(
+                        name: name,
+                        contact: contact,
+                        serial: serial,
+                        docId: doc.id,
+                        data: data,
+                        onCall: () => _launchUrl("tel:$contact"),
+                        onDelete: () => _confirmDelete(doc.id),
+                        isWide: isWide,
+                      );
+
+                    },
                   );
                 },
               ),
@@ -205,7 +226,6 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
   }
@@ -215,10 +235,9 @@ class _CustomerCard extends StatelessWidget {
   final String name;
   final String contact;
   final String serial;
+  final String docId;
+  final Map<String, dynamic> data;
   final VoidCallback onCall;
-  final VoidCallback onView;
-  final VoidCallback onEdit;
-  final VoidCallback onWhatsApp;
   final VoidCallback onDelete;
   final bool isWide;
 
@@ -227,13 +246,13 @@ class _CustomerCard extends StatelessWidget {
     required this.name,
     required this.contact,
     required this.serial,
+    required this.docId,
+    required this.data,
     required this.onCall,
-    required this.onView,
-    required this.onEdit,
-    required this.onWhatsApp,
     required this.onDelete,
     required this.isWide,
   }) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +267,6 @@ class _CustomerCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Avatar / Initial
             CircleAvatar(
               radius: isWide ? 30 : 24,
               backgroundColor: Colors.grey.shade300,
@@ -262,7 +280,6 @@ class _CustomerCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,17 +303,65 @@ class _CustomerCard extends StatelessWidget {
                         icon: const Icon(Icons.phone, color: Colors.green),
                       ),
                       IconButton(
-                        onPressed: onView,
-                        icon: const Icon(Icons.remove_red_eye,
-                            color: Colors.blueAccent),
+                        onPressed: () async {
+                          try {
+                            final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+                            // Determine which collection to query
+                            final String category = data['category'] ?? 'Customers';
+                            final String collection = category == 'Repairing'
+                                ? 'repairing_customers'
+                                : 'customers';
+
+                            // Fetch the document from Firestore
+                            final DocumentSnapshot docSnapshot =
+                            await firestore.collection(collection).doc(docId).get();
+
+                            if (!docSnapshot.exists) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Record not found in $collection")),
+                              );
+                              return;
+                            }
+
+                            final docData = docSnapshot.data() as Map<String, dynamic>?;
+
+                            if (docData == null ||
+                                !(docData.containsKey('userId') && docData.containsKey('shopId'))) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("User or Shop ID missing in $collection document")),
+                              );
+                              return;
+                            }
+
+                            final String userId = docData['userId'];
+                            final String shopId = docData['shopId'];
+
+                            // ✅ Navigate to receipt screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CustomerReceiptScreen(
+                                  customerId: docId,
+                                  userId: userId,
+                                ),
+                              ),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Error fetching record: $e")),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.remove_red_eye, color: Colors.blueAccent),
                       ),
                       IconButton(
-                        onPressed: onEdit,
+                        onPressed: (){},
                         icon: const Icon(Icons.edit, color: Colors.orange),
                       ),
                       IconButton(
-                        onPressed: onWhatsApp,
-                        icon: const Icon(Icons.face, color: Colors.green),
+                        onPressed: (){},
+                        icon: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green),
                       ),
                       IconButton(
                         onPressed: onDelete,
@@ -307,10 +372,8 @@ class _CustomerCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Serial number badge
             Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.red.shade900,
                 borderRadius: BorderRadius.circular(20),
@@ -329,38 +392,3 @@ class _CustomerCard extends StatelessWidget {
     );
   }
 }
-
-class _BottomNavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-  const _BottomNavItem({
-    Key? key,
-    required this.icon,
-    required this.label,
-    this.active = false,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48, // Ensures fixed height for bottom bar item
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: active ? Colors.red : Colors.grey, size: 20),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: active ? Colors.red : Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
