@@ -36,9 +36,6 @@ class BottomNavBar extends StatelessWidget {
               email: "tariqopticals@gmail.com",
               contact: "03126017600",
               address: "Main Saddar, Karachi",
-              totalCustomers: 250,
-              opticsCustomers: 180,
-              repairingCustomers: 70,
               subscriptionStatus: "Active",
               daysLeft: 9, // mock data for now
             ),
