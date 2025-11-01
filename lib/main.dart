@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Ali Optical',
+      title: 'Optix',
       theme: ThemeData(
 
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),

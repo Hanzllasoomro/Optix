@@ -52,7 +52,7 @@ class LoginPage extends StatelessWidget {
               ),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
+                  colors: [Color(0xFFBA68C8), Color(0xFFBA68C8)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -70,7 +70,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    "Ali Opticals",
+                    "Optix",
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: isWide ? 28 : 22,
@@ -103,7 +103,7 @@ class LoginPage extends StatelessWidget {
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: "Email",
-                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
+                  labelStyle: const TextStyle(color: Color(0xFFBA68C8)),
                   filled: true,
                   fillColor: Colors.white,
                   hintText: "Enter your email",
@@ -114,7 +114,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
+                    borderSide: const BorderSide(color: Color(0xFFBA68C8)),
                   ),
                 ),
               ),
@@ -131,7 +131,7 @@ class LoginPage extends StatelessWidget {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: "Password",
-                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
+                  labelStyle: const TextStyle(color: Color(0xFFBA68C8)),
                   filled: true,
                   fillColor: Colors.white,
                   hintText: "Enter your password",
@@ -142,7 +142,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
+                    borderSide: const BorderSide(color: Color(0xFFBA68C8)),
                   ),
                 ),
               ),
@@ -153,7 +153,7 @@ class LoginPage extends StatelessWidget {
             // 🔵 Login Button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD32F2F),
+                backgroundColor: const Color(0xFFBA68C8),
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(
                   horizontal: isWide ? 150 : 100,
@@ -186,9 +186,9 @@ class LoginPage extends StatelessWidget {
                 GestureDetector(
                   onTap: onTap,
                   child: Text(
-                    "Register now",
+                    "Registeration",
                     style: GoogleFonts.poppins(
-                      color: const Color(0xFFD32F2F),
+                      color: const Color(0xFFBA68C8),
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),

@@ -1,9 +1,9 @@
 import 'package:alioptical/pages/addRepairingCustomerScreen.dart';
-import 'package:alioptical/servers/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../servers/auth/auth_service.dart';
 import './customerSearchScreen.dart';
 import './myShopScreen.dart';
 import './addCustomerScreen.dart';
@@ -36,7 +36,7 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5FB),
-      body: SafeArea(
+      body: SingleChildScrollView(
         child: Column(
           children: [
             // 🔴 Header with dynamic shop name
@@ -54,20 +54,21 @@ class DashboardScreen extends StatelessWidget {
 
                 return Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    vertical: isWide ? 50 : 40,
-                    horizontal: isWide ? 40 : 20,
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + (isWide ? 40 : 30),
+                    bottom: isWide ? 40 : 30,
+                    left: isWide ? 40 : 20,
+                    right: isWide ? 40 : 20,
                   ),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
+                      colors: [Color(0xFFBA68C8), Color(0xFFBA68C8)],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(50),
                       bottomRight: Radius.circular(50),
-
                     ),
                   ),
                   child: Column(
@@ -94,122 +95,125 @@ class DashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-      
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  int crossAxisCount;
-                  double aspectRatio;
+            // ⚙️ Grid Buttons Section (no Expanded needed inside ScrollView)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                int crossAxisCount;
+                double aspectRatio;
 
-                  if (constraints.maxWidth >= 1000) {
-                    crossAxisCount = 4;
-                    aspectRatio = 1.2;
-                  } else if (constraints.maxWidth >= 600) {
-                    crossAxisCount = 3;
-                    aspectRatio = 1.0;
-                  } else {
-                    crossAxisCount = 2;
-                    aspectRatio = 1.0;
-                  }
+                if (constraints.maxWidth >= 1000) {
+                  crossAxisCount = 4;
+                  aspectRatio = 1.2;
+                } else if (constraints.maxWidth >= 600) {
+                  crossAxisCount = 3;
+                  aspectRatio = 1.0;
+                } else {
+                  crossAxisCount = 2;
+                  aspectRatio = 1.0;
+                }
 
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isWide ? 60 : 16,
-                      vertical: 10,
-                    ),
-                    child: GridView.count(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 20,
-                      childAspectRatio: aspectRatio,
-                      children: [
-                        _DashboardButton(
-                          icon: Icons.person_add,
-                          label: "Add Customer",
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AddCustomerScreen(),
-                              ),
-                            );
-                          },
-           isWide: isWide,
-                        ),
-                        _DashboardButton(
-                          icon: Icons.search,
-                          label: "Search Customer",
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const CustomerSearchScreen(),
-                              ),
-                            );
-                          },
-                          isWide: isWide,
-                        ),
-                        _DashboardButton(
-                          icon: Icons.build,
-                          label: "Add Repairing Customer",
-                          onTap: () {
-                            Navigator.push(context,
-                            MaterialPageRoute(builder: (context) => AddRepairingCustomerScreen()
-                            )
-                            );
-                          },
-                          isWide: isWide,
-                        ),
-                        _DashboardButton(
-                          icon: Icons.bar_chart,
-                          label: "Sales Record",
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const SalesRecordScreen()),
-                            );
-                          },
-                          isWide: isWide,
-                        ),
-
-                        _DashboardButton(
-                          icon: Icons.storefront,
-                          label: "My Shop",
-                          onTap: () async {
-                            final user = FirebaseAuth.instance.currentUser;
-                            if (user != null) {
-                              final doc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
-                              if (doc.exists) {
-                                final data = doc.data()!;
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MyShopScreen(
-                                      shopName: data['shopName'] ?? 'Shop',
-                                      email: data['email'] ?? 'N/A',
-                                      contact: data['contactNumber'] ?? 'N/A',
-                                      address: data['address'] ?? 'N/A',
-                                      subscriptionStatus: data['subscriptionStatus'] ?? 'Inactive',
-                                      daysLeft: data['daysLeft'] ?? 0,
-                                    ),
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isWide ? 60 : 16,
+                    vertical: 10,
+                  ),
+                  child: GridView.count(
+                    shrinkWrap: true, // ✅ Important for scrolling
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
+                    childAspectRatio: aspectRatio,
+                    children: [
+                      _DashboardButton(
+                        icon: Icons.person_add,
+                        label: "Add Customer",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AddCustomerScreen(),
+                            ),
+                          );
+                        },
+                        isWide: isWide,
+                      ),
+                      _DashboardButton(
+                        icon: Icons.search,
+                        label: "Search Customer",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CustomerSearchScreen(),
+                            ),
+                          );
+                        },
+                        isWide: isWide,
+                      ),
+                      _DashboardButton(
+                        icon: Icons.build,
+                        label: "Add Repairing Customer",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddRepairingCustomerScreen(),
+                            ),
+                          );
+                        },
+                        isWide: isWide,
+                      ),
+                      _DashboardButton(
+                        icon: Icons.bar_chart,
+                        label: "Sales Record",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SalesRecordScreen(),
+                            ),
+                          );
+                        },
+                        isWide: isWide,
+                      ),
+                      _DashboardButton(
+                        icon: Icons.storefront,
+                        label: "My Shop",
+                        onTap: () async {
+                          final user = FirebaseAuth.instance.currentUser;
+                          if (user != null) {
+                            final doc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
+                            if (doc.exists) {
+                              final data = doc.data()!;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MyShopScreen(
+                                    shopName: data['shopName'] ?? 'Shop',
+                                    email: data['email'] ?? 'N/A',
+                                    contact: data['contactNumber'] ?? 'N/A',
+                                    address: data['address'] ?? 'N/A',
+                                    subscriptionStatus: data['subscriptionStatus'] ?? 'Inactive',
+                                    daysLeft: data['daysLeft'] ?? 0,
                                   ),
-                                );
-                              }
+                                ),
+                              );
                             }
-                          },
-                          isWide: isWide,
-                        ),
-                        _DashboardButton(
-                          icon: Icons.power_settings_new,
-                          label: "Logout",
-                          onTap: logout,
-                          isWide: isWide,
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                          }
+                        },
+                        isWide: isWide,
+                      ),
+                      _DashboardButton(
+                        icon: Icons.power_settings_new,
+                        label: "Logout",
+                        onTap: logout,
+                        isWide: isWide,
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -240,14 +244,14 @@ class _DashboardButton extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFFD32F2F), Color(0xFFB71C1C)],
+            colors: [Color(0xFFBA68C8), Color(0xFFBA68C8)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.red.shade200.withOpacity(0.4),
+              color: const Color(0xFFBA68C8).withOpacity(0.4),
               blurRadius: 8,
               offset: const Offset(4, 4),
             ),

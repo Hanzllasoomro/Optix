@@ -101,7 +101,7 @@ class _EditShopScreenState extends State<EditShopScreen> {
 
     if (isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: Colors.red)),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFFBA68C8))),
       );
     }
 
@@ -109,7 +109,7 @@ class _EditShopScreenState extends State<EditShopScreen> {
       backgroundColor: const Color(0xFFF7F5FB),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFFD32F2F),
+        backgroundColor: const Color(0xFFBA68C8),
         title: Text(
           "Edit Shop Details",
           style: GoogleFonts.poppins(
@@ -169,7 +169,7 @@ class _EditShopScreenState extends State<EditShopScreen> {
 
                 _buildActionButton(
                   label: "Save Details 💾",
-                  color: const Color(0xFFD32F2F),
+                  color: const Color(0xFFBA68C8),
                   onPressed: _saveDetails,
                 ),
               ],
@@ -213,7 +213,7 @@ class _EditShopScreenState extends State<EditShopScreen> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.2),
+          borderSide: const BorderSide(color: Color(0xFFBA68C8), width: 1.2),
         ),
       ),
       validator: (val) =>

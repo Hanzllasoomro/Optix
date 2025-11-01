@@ -1,8 +1,9 @@
-import 'package:alioptical/components/bottomNavBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import './editShopScreen.dart';
+import 'addCustomerScreen.dart';
 
 class MyShopScreen extends StatefulWidget {
   final String shopName;
@@ -40,25 +41,36 @@ class _MyShopScreenState extends State<MyShopScreen> {
 
   Future<void> _fetchCustomerCounts() async {
     try {
-      // Fetch optics customers (normal customers)
-      final opticsSnapshot =
-      await FirebaseFirestore.instance.collection('customers').get();
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print("No user logged in");
+        setState(() => isLoading = false);
+        return;
+      }
+
+      final userRef = FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user.uid);
+
+      // 🔹 Fetch optics (customers) for current user
+      final opticsSnapshot = await userRef.collection('customers').get();
       opticsCustomers = opticsSnapshot.size;
 
-      // Fetch repairing customers
-      final repairingSnapshot =
-      await FirebaseFirestore.instance.collection('repairing_customers').get();
+      // 🔹 Fetch repairing customers for current user
+      final repairingSnapshot = await userRef.collection('repairing_customers').get();
       repairingCustomers = repairingSnapshot.size;
 
-      // Calculate total
+      // 🔹 Calculate total
       totalCustomers = opticsCustomers + repairingCustomers;
 
       setState(() => isLoading = false);
     } catch (e) {
-      print("Error fetching customer counts: $e");
+      print("❌ Error fetching customer counts: $e");
       setState(() => isLoading = false);
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,13 +79,14 @@ class _MyShopScreenState extends State<MyShopScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5FB),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFD32F2F),
+        backgroundColor: const Color(0xFFBA68C8),
         elevation: 0,
         title: Text(
           'My Shop',
           style: GoogleFonts.poppins(
             fontSize: isWide ? 24 : 20,
             fontWeight: FontWeight.w600,
+            color: Colors.white
           ),
         ),
         leading: IconButton(
@@ -82,14 +95,14 @@ class _MyShopScreenState extends State<MyShopScreen> {
         ),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.red))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFBA68C8)))
           : SingleChildScrollView(
         padding: EdgeInsets.all(isWide ? 40 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(Icons.store,
-                color: const Color(0xFFD32F2F), size: isWide ? 90 : 70),
+                color: const Color(0xFFBA68C8), size: isWide ? 90 : 70),
             const SizedBox(height: 10),
             Text(
               widget.shopName,
@@ -149,7 +162,18 @@ class _MyShopScreenState extends State<MyShopScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFBA68C8),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddCustomerScreen(),
+            ),
+          );
+        },
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
@@ -157,7 +181,7 @@ class _MyShopScreenState extends State<MyShopScreen> {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
+          colors: [Color(0xFFBA68C8), Color(0xFFBA68C8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -200,7 +224,7 @@ class _MyShopScreenState extends State<MyShopScreen> {
         required VoidCallback onTap}) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: color,
+        backgroundColor: Color(0xFFBA68C8),
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),

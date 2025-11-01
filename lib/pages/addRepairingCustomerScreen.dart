@@ -1,16 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../components/bottomNavBar.dart'; // Adjust this path if needed
+import 'addCustomerScreen.dart'; // Adjust this path if needed
 
 class AddRepairingCustomerScreen extends StatefulWidget {
-  const AddRepairingCustomerScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic>? customerData;
+  final String? docId;
+
+  const AddRepairingCustomerScreen({Key? key, this.customerData, this.docId}) : super(key: key);
 
   @override
-  State<AddRepairingCustomerScreen> createState() =>
-      _AddRepairingCustomerScreenState();
+  State<AddRepairingCustomerScreen> createState() => _AddRepairingCustomerScreenState();
 }
+
 
 class _AddRepairingCustomerScreenState
     extends State<AddRepairingCustomerScreen> {
@@ -30,23 +34,47 @@ class _AddRepairingCustomerScreenState
   bool _loadingSerial = true;
   bool _submitting = false;
 
-  final CollectionReference _repairRef =
-  FirebaseFirestore.instance.collection('repairing_customers');
+  CollectionReference<Map<String, dynamic>> get _repairingRef {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception("User not logged in");
+    }
+    return FirebaseFirestore.instance
+        .collection('Users')
+        .doc(user.uid)
+        .collection('repairing_customers');
+  }
+
 
   @override
   void initState() {
     super.initState();
-    _fetchNextSerial();
 
-    // auto-balance update
     _totalController.addListener(_calculateBalance);
     _advanceController.addListener(_calculateBalance);
+
+    if (widget.customerData != null) {
+      final data = widget.customerData!;
+      _nameController.text = data['name'] ?? '';
+      _contactController.text = data['contact'] ?? '';
+      _totalController.text = (data['total'] ?? 0).toString();
+      _advanceController.text = (data['advance'] ?? 0).toString();
+      _balanceController.text = (data['balance'] ?? 0).toString();
+
+      if (data['date'] != null) _selectedDate = DateTime.tryParse(data['date']) ?? DateTime.now();
+      if (data['dueDate'] != null) _dueDate = DateTime.tryParse(data['dueDate']);
+
+      _serialNo = data['serialNo'] ?? 1000;
+    } else {
+      _fetchNextSerial(); // for new customers
+    }
   }
+
 
   Future<void> _fetchNextSerial() async {
     try {
       setState(() => _loadingSerial = true);
-      final snapshot = await _repairRef
+      final snapshot = await _repairingRef
           .orderBy('serialNo', descending: true)
           .limit(1)
           .get();
@@ -97,35 +125,49 @@ class _AddRepairingCustomerScreenState
   String _formatDate(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _submitting = true);
+
+    final data = {
+      'serialNo': _serialNo,
+      'name': _nameController.text.trim(),
+      'contact': _contactController.text.trim(),
+      'total': double.tryParse(_totalController.text) ?? 0.0,
+      'advance': double.tryParse(_advanceController.text) ?? 0.0,
+      'balance': double.tryParse(_balanceController.text) ?? 0.0,
+      'date': _formatDate(_selectedDate),
+      'dueDate': _dueDate == null ? null : _formatDate(_dueDate!),
+      'createdAt': FieldValue.serverTimestamp(),
+    };
+
     try {
-      final data = {
-        'serialNo': _serialNo,
-        'name': _nameController.text.trim(),
-        'contact': _contactController.text.trim(),
-        'total': double.tryParse(_totalController.text) ?? 0.0,
-        'advance': double.tryParse(_advanceController.text) ?? 0.0,
-        'balance': double.tryParse(_balanceController.text) ?? 0.0,
-        'date': _formatDate(_selectedDate),
-        'dueDate': _dueDate == null ? null : _formatDate(_dueDate!),
-        'createdAt': FieldValue.serverTimestamp(),
-      };
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
 
-      await _repairRef.add(data);
+      final repairingRef = FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user.uid)
+          .collection('repairing_customers');
 
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Repairing customer added successfully')),
-      );
+      if (widget.docId != null) {
+        await _repairingRef.doc(widget.docId).update(data);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Repairing customer updated successfully')),
+        );
+      } else {
+        await _repairingRef.add(data);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Repairing customer added successfully')),
+        );
+      }
 
       Navigator.of(context).pop(true);
     } catch (e) {
-      debugPrint('Submit error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add customer: $e')),
+        SnackBar(content: Text('Failed to save repairing customer: $e')),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -190,18 +232,16 @@ class _AddRepairingCustomerScreenState
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.red[800],
+        backgroundColor: Color(0xFFBA68C8),
         title: Text(
           'Repairing Customers',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600,color: Colors.white),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back,color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              // TODO: implement signout logic here
-            },
-          ),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Center(child: _buildSerialBadge()),
@@ -209,13 +249,22 @@ class _AddRepairingCustomerScreenState
         ],
       ),
 
-      // ✅ integrated your BottomNavBar here
-      bottomNavigationBar: const BottomNavBar(currentIndex: 0),
-
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFBA68C8),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddCustomerScreen(),
+            ),
+          );
+        },
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: _loadingSerial && _serialNo == 0
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFFBA68C8)))
             : SingleChildScrollView(
           padding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -326,7 +375,7 @@ class _AddRepairingCustomerScreenState
                   child: ElevatedButton(
                     onPressed: _submitting ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[800],
+                      backgroundColor: Color(0xFFBA68C8),
                       padding:
                       const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -337,13 +386,12 @@ class _AddRepairingCustomerScreenState
                         ? const SizedBox(
                       height: 16,
                       width: 16,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
+                      child: CircularProgressIndicator(color: Color(0xFFBA68C8),
                         strokeWidth: 2,
                       ),
                     )
                         : Text('Submit',
-                        style: GoogleFonts.poppins(fontSize: 16)),
+                        style: TextStyle(fontSize: 16,color: Colors.white)),
                   ),
                 ),
                 const SizedBox(height: 40),

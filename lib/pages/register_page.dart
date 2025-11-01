@@ -1,61 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../servers/auth/auth_service.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // 👈 Add this in pubspec.yaml
+import 'package:url_launcher/url_launcher.dart';
 
 class RegisterPage extends StatelessWidget {
-  // 🔹 Controllers
-  final TextEditingController _shopNameController = TextEditingController();
-  final TextEditingController _contactController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-
   final void Function()? onTap;
 
-  RegisterPage({super.key, required this.onTap});
-
-  // 🔹 Registration Function
-  void register(BuildContext context) async {
-    final auth = AuthService();
-
-    if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
-      _showErrorDialog(context, "Passwords do not match");
-      return;
-    }
-
-    try {
-      await auth.signUpWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-        shopName: _shopNameController.text.trim(),
-        contactNumber: _contactController.text.trim(),
-      );
-
-      showDialog(
-        context: context,
-        builder: (context) => const AlertDialog(
-          title: Text("Success"),
-          content: Text("Account created successfully!"),
-        ),
-      );
-    } catch (e) {
-      _showErrorDialog(context, e.toString());
-    }
-  }
-
-
-  // 🔹 Error dialog
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Registration Failed"),
-        content: Text(message),
-      ),
-    );
-  }
+  const RegisterPage({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -66,250 +17,197 @@ class RegisterPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF7F5FB),
       body: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // 🔴 Header Section
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                vertical: isWide ? 60 : 50,
-                horizontal: isWide ? 40 : 20,
-              ),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(50),
-                  bottomRight: Radius.circular(50),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.store,
-                    color: Colors.white,
-                    size: isWide ? 80 : 60,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Ali Opticals",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: isWide ? 28 : 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 70),
-
-            // 🟢 Title
-            Text(
-              "Create an Account",
-              style: GoogleFonts.poppins(
-                color: Colors.black,
-                fontSize: isWide ? 20 : 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            // 🟢 Shop Name Field
-            Container(
-              width: isWide ? 400 : 320,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _shopNameController,
-                decoration: InputDecoration(
-                  labelText: "Shop Name",
-                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: "Enter your shop name",
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.black),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 🟢 Contact Number Field
-            Container(
-              width: isWide ? 400 : 320,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _contactController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: "Contact Number",
-                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: "Enter your contact number",
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.black),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 🟢 Email Field
-            Container(
-              width: isWide ? 400 : 320,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: "Enter your email",
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.black),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 🟢 Password Field
-            Container(
-              width: isWide ? 400 : 320,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: "Enter your password",
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.black),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 🟢 Confirm Password Field
-            Container(
-              width: isWide ? 400 : 320,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _confirmPasswordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "Confirm Password",
-                  labelStyle: const TextStyle(color: Color(0xFFD32F2F)),
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: "Re-enter your password",
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.black),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFD32F2F)),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // 🔵 Register Button
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD32F2F),
-                foregroundColor: Colors.white,
+            children: [
+              // 🌈 Header
+              Container(
+                width: double.infinity,
                 padding: EdgeInsets.symmetric(
-                  horizontal: isWide ? 120 : 100,
-                  vertical: 15,
+                  vertical: isWide ? 60 : 50,
+                  horizontal: isWide ? 40 : 20,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () => register(context),
-              child: Text(
-                "Register",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            // 🔸 Already have an account?
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Already have an account? ",
-                  style: GoogleFonts.poppins(fontSize: 14),
-                ),
-                GestureDetector(
-                  onTap: onTap,
-                  child: Text(
-                    "Login now",
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFFD32F2F),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFBA68C8), Color(0xFFBA68C8)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(50),
+                    bottomRight: Radius.circular(50),
                   ),
                 ),
-              ],
-            ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.store,
+                      color: Colors.white,
+                      size: isWide ? 80 : 60,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "Optix",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: isWide ? 28 : 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 100),
+
+              // 💬 Info Text
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Column(
+                  children: [
+                    Text(
+                      "Online registration is currently not available.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.black87,
+                        fontSize: isWide ? 18 : 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      "To create an account or register your shop, please contact our team:",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.grey.shade700,
+                        fontSize: isWide ? 15 : 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // 📞 Contact Card
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 30),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBA68C8),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFBA68C8).withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 35,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: const Color(0xFFBA68C8),
+                        size: 40,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      "Hanzlla Soomro",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      "For Registration & Support. Click on number",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // WhatsApp Row
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        splashColor: Colors.white24,
+                        onTap: () async {
+                          const phoneNumber = "923106387577"; // ✅ no + for wa.me links
+                          final whatsappUrl = Uri.parse("https://wa.me/$phoneNumber");
+                          if (await canLaunchUrl(whatsappUrl)) {
+                            await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("WhatsApp not installed or can't be opened")),
+                            );
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.white, size: 22),
+                            const SizedBox(width: 10),
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: Text(
+                                "+92 3106387577",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  decorationColor: Colors.white70,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+
+
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // 🔸 Back to login
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBA68C8),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isWide ? 80 : 60,
+                    vertical: 15,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: onTap,
+                child: Text(
+                  "Back to Login",
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 60),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+
+
   }
 }

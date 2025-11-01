@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="Ali Optical"
+        android:label="Optix"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -42,4 +42,13 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+
+
+    <!-- ✅ Allow your app to query for WhatsApp -->
+    <queries>
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" /> <!-- WhatsApp Business -->
+    </queries>
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
 </manifest>
