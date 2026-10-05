@@ -336,6 +336,14 @@ class _SalesRecordScreenState extends State<SalesRecordScreen> {
           _fetchSalesData();
         }
       },
+      dropdownColor: Colors.white,
+      iconEnabledColor: const Color(0xFFBA68C8),
+      style: GoogleFonts.poppins(
+          color: const Color(0xFFBA68C8)),
+      underline: Container(
+        height: 2,
+        color: const Color(0xFFBA68C8),
+      ),
     );
   }
 
@@ -356,6 +364,14 @@ class _SalesRecordScreenState extends State<SalesRecordScreen> {
           _fetchSalesData();
         }
       },
+      dropdownColor: Colors.white,
+      iconEnabledColor: const Color(0xFFBA68C8),
+      style: GoogleFonts.poppins(
+          color: const Color(0xFFBA68C8)),
+      underline: Container(
+        height: 2,
+        color: const Color(0xFFBA68C8),
+      ),
     );
   }
 }

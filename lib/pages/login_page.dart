@@ -63,10 +63,13 @@ class LoginPage extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Icon(
-                    Icons.store,
-                    color: Colors.white,
-                    size: isWide ? 80 : 60,
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.store_mall_directory_rounded, color: Colors.white, size: 55),
                   ),
                   const SizedBox(height: 10),
                   Text(

@@ -21,35 +21,40 @@ class AuthService{
           password: password);
 
 
+      final user = userCredential.user;
+      if (user != null) {
+        await ensureUserDocumentExists(user); // Ensures Firestore data & expenses
+      }
+
       return userCredential;
     } on FirebaseAuthException catch(e) {
       throw Exception(e.code);
     }
   }
-  //sign up
-  Future<UserCredential> signUpWithEmailAndPassword({
-    required String email,
-    required String password,
-    required String shopName,
-    required String contactNumber,
-  }) async {
-    try {
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  /// ✅ Ensure user document & subcollections exist
+  Future<void> ensureUserDocumentExists(User user) async {
+    final docRef = _firestore.collection('Users').doc(user.uid);
+    final doc = await docRef.get();
 
-      await _firestore.collection("Users").doc(userCredential.user!.uid).set({
-        'uid': userCredential.user!.uid,
-        'email': email,
-        'shopName': shopName,
-        'contactNumber': contactNumber,
+    if (!doc.exists) {
+      // Create user document
+      await docRef.set({
+        'uid': user.uid,
+        'email': user.email ?? '',
+        'shopName': '',
+        'contactNumber': '',
+        'address': '',
         'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       });
-
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      throw Exception(e.code);
+    } else {
+      // Update missing fields
+      await docRef.update({
+        'updatedAt': FieldValue.serverTimestamp(),
+        'shopName': doc.data()?['shopName'] ?? '',
+        'contactNumber': doc.data()?['contactNumber'] ?? '',
+        'address': doc.data()?['address'] ?? '',
+      });
     }
   }
 
